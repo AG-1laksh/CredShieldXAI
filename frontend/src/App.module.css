@@ -1,88 +1,100 @@
 .container {
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 1.5rem;
-  color: #f8fafc;
+  padding: 3rem;
+  min-height: 100vh;
 }
 
 .header {
-  margin-bottom: 1rem;
+  margin-bottom: 3rem;
+  border-bottom: 2px solid #e2e8f0;
+  position: relative;
+  padding-bottom: 1.5rem;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 120px;
+  height: 2px;
+  background: var(--accent-orange);
+  box-shadow: 0 2px 4px rgba(249, 115, 22, 0.2);
 }
 
 .header h1 {
   margin: 0;
-  font-size: 2rem;
-  color: #f8fafc;
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--primary-dark);
 }
 
 .header p {
-  margin-top: 0.35rem;
-  color: #94a3b8;
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .layout {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
+  grid-template-columns: 1fr 1fr; /* 1:1 Split */
+  gap: 3rem;
 }
 
-.statusRow {
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mainColumn {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.vizColumn {
+  position: sticky;
+  top: 2rem;
+  align-self: start;
+}
+
+/* Error Toast (Orange/Red) */
+.errorToast {
+  margin-bottom: 2rem;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  background: #fff5f5;
+  border-left: 4px solid var(--danger-color);
+  color: var(--danger-color);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.badge {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.45);
-  border-radius: 999px;
-  padding: 0.25rem 0.65rem;
-  font-size: 0.8rem;
-}
-
-.backend {
-  color: #93c5fd;
-  font-size: 0.86rem;
-}
-
-.error {
-  color: #fecaca;
-  background: rgba(127, 29, 29, 0.35);
-  border: 1px solid rgba(248, 113, 113, 0.5);
-  padding: 0.45rem 0.6rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-}
-
-.drawerToggle {
-  position: fixed;
-  right: 1rem;
-  bottom: 14.5rem;
-  z-index: 15;
-  border: 1px solid rgba(59, 130, 246, 0.55);
-  background: rgba(30, 41, 59, 0.85);
-  color: #dbeafe;
-  border-radius: 999px;
-  padding: 0.65rem 0.9rem;
-  cursor: pointer;
+  gap: 1rem;
   font-weight: 600;
+  animation: slideIn 0.4s ease-out;
 }
 
-.drawer {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%) translateY(calc(100% + 2rem));
-  bottom: 0.75rem;
-  width: min(1150px, calc(100% - 1.5rem));
-  z-index: 12;
-  transition: transform 0.3s ease;
-  pointer-events: none;
+.errorToast::before {
+  content: '!';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  background: var(--danger-color);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 800;
 }
 
-.drawerOpen {
-  transform: translateX(-50%) translateY(0);
-  pointer-events: auto;
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

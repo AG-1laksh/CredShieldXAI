@@ -3,15 +3,18 @@ import { FORM_SELECT_OPTIONS } from '../constants/formOptions';
 
 const STEP_GROUPS = [
   {
-    title: 'Applicant Profile',
+    title: 'Applicant',
+    shortTitle: 'Profile',
     fields: ['age', 'personal_status', 'job', 'employment', 'num_dependents', 'housing'],
   },
   {
-    title: 'Credit Profile',
+    title: 'History',
+    shortTitle: 'Credit',
     fields: ['checking_status', 'credit_history', 'existing_credits', 'other_payment_plans', 'own_telephone', 'foreign_worker'],
   },
   {
-    title: 'Loan Details',
+    title: 'Financials',
+    shortTitle: 'Loan',
     fields: ['purpose', 'credit_amount', 'duration', 'installment_commitment', 'savings_status', 'residence_since', 'other_parties', 'property_magnitude'],
   },
 ];
@@ -49,94 +52,89 @@ const NUMERIC_FIELDS = new Set([
   'num_dependents',
 ]);
 
-function renderInput(field, value, onChange) {
-  if (FORM_SELECT_OPTIONS[field]) {
+export default function AssessmentForm({ formData, updateField, currentStep, setCurrentStep, onAssess, loading }) {
+  const currentGroup = STEP_GROUPS[currentStep];
+  const isLastStep = currentStep === STEP_GROUPS.length - 1;
+
+  const handleChange = (field, e) => {
+    let val = e.target.value;
+    if (NUMERIC_FIELDS.has(field)) {
+      val = Number(val);
+    }
+    updateField(field, val);
+  };
+
+  const renderField = (field) => {
+    const options = FORM_SELECT_OPTIONS[field];
+    const label = FIELD_LABELS[field] || field;
+
     return (
-      <div className={styles.selectWrap}>
-        <select
-          className={`${styles.input} ${styles.selectInput}`}
-          value={value}
-          onChange={(e) => onChange(field, e.target.value)}
-        >
-          {FORM_SELECT_OPTIONS[field].map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-        <span className={styles.chevron}>▾</span>
+      <div key={field} className={styles.fieldGroup}>
+        <label className={styles.label}>{label}</label>
+        {options ? (
+          <select
+            className={styles.select}
+            value={formData[field]}
+            onChange={(e) => handleChange(field, e)}
+          >
+            {options.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            className={styles.input}
+            type="number"
+            value={formData[field]}
+            onChange={(e) => handleChange(field, e)}
+          />
+        )}
       </div>
     );
-  }
-
-  return (
-    <input
-      className={styles.input}
-      type="number"
-      value={value}
-      onChange={(e) => onChange(field, Number(e.target.value))}
-      min={NUMERIC_FIELDS.has(field) ? 1 : undefined}
-    />
-  );
-}
-
-export default function AssessmentForm({
-  formData,
-  onFieldChange,
-  onSubmit,
-  currentStep,
-  onStepChange,
-  loading,
-}) {
-  const step = STEP_GROUPS[currentStep];
-  const progressPct = ((currentStep + 1) / STEP_GROUPS.length) * 100;
+  };
 
   return (
     <section className={styles.card}>
-      <header className={styles.header}>
-        <h2>Assessment Form</h2>
-        <p>Step {currentStep + 1} of {STEP_GROUPS.length}: {step.title}</p>
-        <div className={styles.progressTrack}>
-          <div className={styles.progressFill} style={{ width: `${progressPct}%` }} />
-        </div>
-      </header>
+      <div className={styles.header}>
+        <h2>Risk Assessment</h2>
+        <p>Complete the profile to generate an AI-powered risk score.</p>
+      </div>
 
-      <div className={styles.grid}>
-        {step.fields.map((field) => (
-          <label key={field} className={styles.fieldGroup}>
-            <span className={styles.label}>{FIELD_LABELS[field]}</span>
-            {renderInput(field, formData[field], onFieldChange)}
-          </label>
-        ))}
+      <div className={styles.progressContainer}>
+        {STEP_GROUPS.map((grp, idx) => {
+           let nodeClass = styles.stepNode;
+           if (idx < currentStep) nodeClass += ` ${styles.stepNodeCompleted}`;
+           if (idx === currentStep) nodeClass += ` ${styles.stepNodeActive}`;
+           
+           return (
+             <div key={idx} className={nodeClass}>
+                <span>{idx + 1}</span>
+                <span className={styles.stepLabel}>{grp.shortTitle}</span>
+             </div>
+           );
+        })}
+      </div>
+
+      <div className={styles.formGrid}>
+        {currentGroup.fields.map(renderField)}
       </div>
 
       <div className={styles.actions}>
-        <button
-          type="button"
-          onClick={() => onStepChange(Math.max(0, currentStep - 1))}
-          disabled={currentStep === 0 || loading}
-          className={styles.secondary}
-        >
-          Previous
-        </button>
-
-        {currentStep < STEP_GROUPS.length - 1 ? (
-          <button
-            type="button"
-            onClick={() => onStepChange(Math.min(STEP_GROUPS.length - 1, currentStep + 1))}
-            disabled={loading}
-            className={styles.primary}
-          >
-            Next
+        {currentStep > 0 && (
+          <button className={styles.button} onClick={() => setCurrentStep((p) => p - 1)} disabled={loading}>
+            Back
+          </button>
+        )}
+        
+        {!isLastStep ? (
+          <button className={styles.submitButton} onClick={() => setCurrentStep((p) => p + 1)} disabled={loading}>
+            Next Step
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={onSubmit}
-            disabled={loading}
-            className={styles.primary}
-          >
-            {loading ? 'Scoring...' : 'Assess Risk'}
+          <button className={styles.submitButton} onClick={onAssess} disabled={loading}>
+            {loading ? 'Analyzing...' : 'Assess Risk'}
           </button>
         )}
       </div>

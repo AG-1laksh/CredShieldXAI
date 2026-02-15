@@ -12,32 +12,39 @@ const SLIDER_CONFIG = [
 export default function WhatIfSimulator({ formData, onScenarioChange, isEnabled, loading }) {
   return (
     <section className={styles.card}>
-      <h2>What-If Simulator</h2>
-      <p className={styles.subtitle}>
-        Adjust sliders to trigger instant re-scoring and observe risk movement in real time.
-      </p>
+      <div className={styles.header}>
+        <h2>What-If Simulator</h2>
+        <p className={styles.empty}>
+            Adjust sliders to trigger instant re-scoring and observe risk movement in real time.
+        </p>
+      </div>
 
-      <div className={styles.grid}>
+      <div className={styles.controls}>
         {SLIDER_CONFIG.map((slider) => (
-          <label key={slider.key} className={styles.sliderField}>
-            <div className={styles.topLine}>
+          <div key={slider.key} className={styles.controlGroup}>
+            <label>
               <span>{slider.label}</span>
-              <strong>{formData[slider.key]}</strong>
-            </div>
+              <span>{formData[slider.key]}</span>
+            </label>
             <input
+              className={styles.slider}
               type="range"
               min={slider.min}
               max={slider.max}
               step={slider.step}
-              value={formData[slider.key]}
+              value={formData[slider.key] || slider.min} // Fallback to min if undefined
               disabled={!isEnabled || loading}
               onChange={(e) => onScenarioChange(slider.key, Number(e.target.value))}
             />
-          </label>
+          </div>
         ))}
       </div>
 
-      {!isEnabled ? <p className={styles.note}>Run the first assessment to activate simulation.</p> : null}
+      {!isEnabled && (
+        <div style={{textAlign: 'center', marginTop: '1rem', color: 'var(--text-secondary)'}}>
+             Run the first assessment to activate simulation.
+        </div>
+      )}
     </section>
   );
 }

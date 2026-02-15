@@ -13,7 +13,6 @@ function App() {
   const [error, setError] = useState('');
   const [currentStep, setCurrentStep] = useState(0);
   const [simulationEnabled, setSimulationEnabled] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -28,7 +27,8 @@ function App() {
       return result;
     } catch (err) {
       console.error('runPrediction failed in App', err);
-      setError(err.message || 'Prediction failed unexpectedly.');
+      // More user-friendly error message can be parsed here if needed
+      setError(err.message || 'Connection failed. Ensure the AI secure link is active.');
       return null;
     } finally {
       setLoading(false);
@@ -39,7 +39,7 @@ function App() {
     const result = await runPrediction(formData);
     if (result) {
       setSimulationEnabled(true);
-      setDrawerOpen(true);
+      // Wait for layout animation if needed
     }
   };
 
@@ -48,59 +48,51 @@ function App() {
       return;
     }
 
-    const timeoutId = setTimeout(() => {
+    const timer = setTimeout(() => {
       runPrediction(formData);
-    }, 450);
+    }, 600); // Debounce simulation
 
-    return () => clearTimeout(timeoutId);
+    return () => clearTimeout(timer);
   }, [formData, simulationEnabled]);
 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
         <h1>CrediShield XAI</h1>
-        <p>Premium explainable credit intelligence with real-time scenario simulation.</p>
+        <p>Neumorphic Cyber-Finance Intelligence Unit</p>
       </header>
 
-      <div className={styles.statusRow}>
-        <span className={styles.badge}>{simulationEnabled ? 'What-If Unlocked' : 'Assessment Mode'}</span>
-        <span className={styles.backend}>Backend: http://127.0.0.1:8000</span>
-        {error ? <span className={styles.error}>{error}</span> : null}
-      </div>
+      {error && (
+        <div className={styles.errorToast}>
+           <span>{error}</span>
+        </div>
+      )}
 
-      <main className={styles.layout}>
-        <AssessmentForm
-          formData={formData}
-          onFieldChange={updateField}
-          onSubmit={handleAssessRisk}
-          currentStep={currentStep}
-          onStepChange={setCurrentStep}
-          loading={loading}
-        />
-
-        <XAIVisualization prediction={prediction} loading={loading} />
-      </main>
-
-      {simulationEnabled ? (
-        <button
-          type="button"
-          className={styles.drawerToggle}
-          onClick={() => setDrawerOpen((prev) => !prev)}
-        >
-          {drawerOpen ? 'Hide What-If Simulator' : 'Open What-If Simulator'}
-        </button>
-      ) : null}
-
-      {simulationEnabled ? (
-        <aside className={`${styles.drawer} ${drawerOpen ? styles.drawerOpen : ''}`}>
-          <WhatIfSimulator
+      <div className={styles.layout}>
+        <div className={styles.mainColumn}>
+          <AssessmentForm
             formData={formData}
-            onScenarioChange={updateField}
-            isEnabled={simulationEnabled}
+            updateField={updateField}
+            currentStep={currentStep}
+            setCurrentStep={setCurrentStep}
+            onAssess={handleAssessRisk}
             loading={loading}
           />
-        </aside>
-      ) : null}
+
+          {simulationEnabled && (
+            <WhatIfSimulator
+              formData={formData}
+              onScenarioChange={updateField}
+              isEnabled={simulationEnabled}
+              loading={loading}
+            />
+          )}
+        </div>
+
+        <div className={styles.vizColumn}>
+           <XAIVisualization prediction={prediction} loading={loading} />
+        </div>
+      </div>
     </div>
   );
 }
