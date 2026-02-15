@@ -10,6 +10,7 @@ import {
   setAccessToken,
 } from './api/client';
 import AssessmentForm from './components/AssessmentForm';
+import LogoIntroSplash from './components/LogoIntroSplash';
 import { computeConfidence, generateRecommendations, getFeatureLabel } from './constants/decisionSupport';
 import { DEFAULT_FORM_VALUES } from './constants/formOptions';
 import { TEXT } from './constants/i18n';
@@ -44,6 +45,11 @@ function confidenceText(score) {
 
 function App({ googleClientIdConfigured = false }) {
   const AUDIT_PAGE_SIZE = 25;
+  const [showIntroSplash, setShowIntroSplash] = useState(
+    () => !readSessionState('credishield-intro-seen', false),
+  );
+  const [showStepSplash, setShowStepSplash] = useState(false);
+  const [showAssessSplash, setShowAssessSplash] = useState(false);
   const [formData, setFormData] = useState(DEFAULT_FORM_VALUES);
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -81,6 +87,16 @@ function App({ googleClientIdConfigured = false }) {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleStepChange = (updater) => {
+    setCurrentStep((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      if (next > prev) {
+        setShowStepSplash(true);
+      }
+      return next;
+    });
+  };
+
   const runPrediction = async (payload) => {
     setLoading(true);
     setError('');
@@ -98,7 +114,13 @@ function App({ googleClientIdConfigured = false }) {
   };
 
   const handleAssessRisk = async () => {
-    const result = await runPrediction(formData);
+    setShowAssessSplash(true);
+    const result = await Promise.all([
+      runPrediction(formData),
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+    ]).then(([predictionResult]) => predictionResult)
+      .finally(() => setShowAssessSplash(false));
+
     if (result) {
       setSimulationEnabled(true);
 
@@ -353,8 +375,37 @@ function App({ googleClientIdConfigured = false }) {
     return () => clearTimeout(timer);
   }, [formData, simulationEnabled]);
 
+  useEffect(() => {
+    if (!showIntroSplash) {
+      return;
+    }
+
+    const introTimer = setTimeout(() => {
+      setShowIntroSplash(false);
+      saveSessionState('credishield-intro-seen', true);
+    }, 3000);
+
+    return () => clearTimeout(introTimer);
+  }, [showIntroSplash]);
+
+  useEffect(() => {
+    if (!showStepSplash) return;
+
+    const stepTimer = setTimeout(() => {
+      setShowStepSplash(false);
+    }, 2000);
+
+    return () => clearTimeout(stepTimer);
+  }, [showStepSplash]);
+
+  if (showIntroSplash) {
+    return <LogoIntroSplash subtitle={t.appTagline} />;
+  }
+
   return (
     <div className={styles.container}>
+      {showStepSplash ? <LogoIntroSplash compact subtitle={t.stepLoading ?? 'Loading next step...'} /> : null}
+      {showAssessSplash ? <LogoIntroSplash compact subtitle={t.assessLoading ?? 'Assessing risk...'} /> : null}
       <header className={styles.header}>
         <div className={styles.titleRow}>
           <div>
@@ -420,7 +471,7 @@ function App({ googleClientIdConfigured = false }) {
                 formData={formData}
                 updateField={updateField}
                 currentStep={currentStep}
-                setCurrentStep={setCurrentStep}
+                setCurrentStep={handleStepChange}
                 onAssess={handleAssessRisk}
                 loading={loading}
                 language={language}

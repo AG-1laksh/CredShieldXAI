@@ -89,6 +89,27 @@ function getFeatureMeaning(feature, language = 'en') {
     : 'This is one of the factors used by the AI to estimate loan risk.');
 }
 
+function getCaseImpactExplanation({ feature, impact, direction, language = 'en' }) {
+  const magnitude = Math.abs(Number(impact) || 0);
+  const strength = magnitude >= 0.5
+    ? (language === 'hi' ? 'मजबूत' : 'strong')
+    : magnitude >= 0.2
+      ? (language === 'hi' ? 'मध्यम' : 'moderate')
+      : (language === 'hi' ? 'हल्का' : 'mild');
+
+  const label = getFeatureLabel(feature, language);
+
+  if (language === 'hi') {
+    return direction === 'up'
+      ? `इस आवेदन में ${label} ने ${strength} रूप से जोखिम बढ़ाया।`
+      : `इस आवेदन में ${label} ने ${strength} रूप से जोखिम घटाया।`;
+  }
+
+  return direction === 'up'
+    ? `In this application, ${label} had a ${strength} risk-increasing effect.`
+    : `In this application, ${label} had a ${strength} risk-reducing effect.`;
+}
+
 function ExplainabilityIntro({ t }) {
   return (
     <div className={styles.explainBox}>
@@ -274,7 +295,7 @@ export default function XAIVisualization({
               <li key={`inc-${i}`}>
                 <span>
                   <span className={styles.reasonFeature}>{getFeatureLabel(r.feature, language)}</span>
-                  <span className={styles.reasonMeaning}>{getFeatureMeaning(r.feature, language)}</span>
+                  <span className={styles.reasonMeaning}>{getCaseImpactExplanation({ feature: r.feature, impact: r.impact, direction: 'up', language })}</span>
                 </span>
                 <span style={{color: COLORS.highRisk, fontWeight: 700}}>+{r.impact.toFixed(4)}</span>
               </li>
@@ -288,7 +309,7 @@ export default function XAIVisualization({
               <li key={`dec-${i}`}>
                 <span>
                   <span className={styles.reasonFeature}>{getFeatureLabel(r.feature, language)}</span>
-                  <span className={styles.reasonMeaning}>{getFeatureMeaning(r.feature, language)}</span>
+                  <span className={styles.reasonMeaning}>{getCaseImpactExplanation({ feature: r.feature, impact: r.impact, direction: 'down', language })}</span>
                 </span>
                 <span style={{color: COLORS.lowRisk, fontWeight: 700}}>{r.impact.toFixed(4)}</span>
               </li>

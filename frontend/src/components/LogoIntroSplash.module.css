@@ -1,0 +1,127 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.14), transparent 35%),
+    radial-gradient(circle at 80% 80%, rgba(249, 115, 22, 0.14), transparent 35%),
+    #f0f4f8;
+}
+
+.overlayCompact {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.1), transparent 35%),
+    radial-gradient(circle at 80% 80%, rgba(249, 115, 22, 0.1), transparent 35%),
+    rgba(240, 244, 248, 0.94);
+}
+
+.centerWrap {
+  text-align: center;
+  animation: introReveal 0.8s ease-out both;
+}
+
+.logoOrb {
+  width: 124px;
+  height: 124px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  box-shadow: 0 12px 32px rgba(30, 58, 138, 0.14);
+}
+
+.ring {
+  position: absolute;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  border-top-color: #2563eb;
+  border-right-color: #f97316;
+  animation: spin 1.8s linear infinite;
+}
+
+.ring:nth-child(1) {
+  width: 92px;
+  height: 92px;
+}
+
+.ring:nth-child(2) {
+  width: 72px;
+  height: 72px;
+  animation-duration: 1.35s;
+  animation-direction: reverse;
+}
+
+.ring:nth-child(3) {
+  width: 52px;
+  height: 52px;
+  animation-duration: 1.05s;
+}
+
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #f97316);
+  box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.35);
+  animation: pulse 1.2s ease-out infinite;
+}
+
+.brand {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: #1e3a8a;
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  margin: 0.4rem 0 0;
+  color: #64748b;
+  font-size: clamp(0.8rem, 2vw, 1rem);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+@keyframes introReveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.35);
+  }
+  70% {
+    transform: scale(1.16);
+    box-shadow: 0 0 0 12px rgba(37, 99, 235, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring,
+  .dot,
+  .centerWrap {
+    animation: none;
+  }
+}

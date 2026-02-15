@@ -13,6 +13,7 @@ export const TEXT = {
     roleAnalyst: 'Analyst',
     roleAdmin: 'Admin',
     startTour: 'Start Tour',
+    stepLoading: 'Loading next step...',
 
     formTitle: 'Risk Assessment',
     formSubtitle: 'Complete the profile to generate an AI-powered risk score.',
@@ -20,6 +21,7 @@ export const TEXT = {
     back: 'Back',
     assessRisk: 'Assess Risk',
     analyzing: 'Analyzing...',
+    assessLoading: 'Assessing risk...',
 
     validationsTitle: 'Smart Guidance',
 
@@ -150,6 +152,7 @@ export const TEXT = {
     roleAnalyst: 'विश्लेषक',
     roleAdmin: 'एडमिन',
     startTour: 'टूर शुरू करें',
+    stepLoading: 'अगला चरण लोड हो रहा है...',
 
     formTitle: 'जोखिम आकलन',
     formSubtitle: 'AI-आधारित जोखिम स्कोर के लिए प्रोफाइल पूरी करें।',
@@ -157,6 +160,7 @@ export const TEXT = {
     back: 'वापस',
     assessRisk: 'जोखिम जाँचें',
     analyzing: 'विश्लेषण हो रहा है...',
+    assessLoading: 'जोखिम का आकलन हो रहा है...',
 
     validationsTitle: 'स्मार्ट मार्गदर्शन',
 
