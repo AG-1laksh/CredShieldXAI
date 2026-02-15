@@ -12,6 +12,13 @@
   padding-bottom: 1.5rem;
 }
 
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
 .header::after {
   content: '';
   position: absolute;
@@ -37,6 +44,34 @@
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.healthBadge {
+  margin-top: 0.2rem;
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.health_up {
+  color: #166534;
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.health_down {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.health_checking {
+  color: #92400e;
+  background: #fef3c7;
+  border-color: #fcd34d;
 }
 
 .layout {
@@ -77,6 +112,7 @@
   gap: 1rem;
   font-weight: 600;
   animation: slideIn 0.4s ease-out;
+  justify-content: space-between;
 }
 
 .errorToast::before {
@@ -92,6 +128,17 @@
   color: #fff;
   font-size: 0.9rem;
   font-weight: 800;
+}
+
+.retryButton {
+  border: none;
+  border-radius: 8px;
+  background: var(--danger-color);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
 }
 
 @keyframes slideIn {
