@@ -51,3 +51,53 @@ class AnalyticsResponse(BaseModel):
     total_predictions: int
     last_prediction_at: datetime | None
     trends: List[AnalyticsTrendPoint]
+
+
+class AuditLogEntry(BaseModel):
+    id: int
+    timestamp: datetime
+    pd_score: float
+    model_version: str
+    input_payload: dict
+
+
+class AuditLogsResponse(BaseModel):
+    count: int
+    entries: List[AuditLogEntry]
+
+
+class FairnessGroupMetric(BaseModel):
+    group: str
+    count: int
+    avg_pd: float
+    high_risk_rate: float
+
+
+class FairnessDiagnosticsResponse(BaseModel):
+    overall_count: int
+    by_personal_status: List[FairnessGroupMetric]
+    by_foreign_worker: List[FairnessGroupMetric]
+
+
+class ModelRegistryResponse(BaseModel):
+    model_version: str
+    artifact_path: str
+    last_trained_at: datetime | None
+    categorical_features: List[str]
+    numerical_features: List[str]
+
+
+class BatchPredictionRequest(BaseModel):
+    items: List[PredictionRequest]
+
+
+class BatchPredictionResult(BaseModel):
+    index: int
+    probability_of_default: float
+    top_risk_increasing: List[ReasonCode]
+    top_risk_decreasing: List[ReasonCode]
+
+
+class BatchPredictionResponse(BaseModel):
+    count: int
+    results: List[BatchPredictionResult]

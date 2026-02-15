@@ -1,0 +1,72 @@
+.card {
+  background: var(--surface-color);
+  border: 1px solid var(--surface-border);
+  border-radius: 20px;
+  padding: 1.8rem;
+  box-shadow: var(--neu-shadow-flat);
+}
+
+.card h2 {
+  margin: 0 0 0.45rem;
+  color: var(--primary-dark);
+}
+
+.card p {
+  margin: 0 0 0.8rem;
+  color: var(--text-secondary);
+}
+
+.fileInputWrap input {
+  width: 100%;
+  padding: 0.55rem;
+  border: 1px dashed #94a3b8;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.55rem;
+  color: #475569;
+  font-size: 0.86rem;
+}
+
+.runBtn {
+  margin-top: 0.8rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--primary-blue);
+  color: #fff;
+  font-weight: 700;
+  padding: 0.55rem 0.95rem;
+  cursor: pointer;
+}
+
+.runBtn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #dc2626;
+  font-size: 0.84rem;
+  margin-top: 0.5rem;
+}
+
+.resultBox {
+  margin-top: 0.85rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 0.7rem;
+}
+
+.resultBox ul {
+  margin: 0.45rem 0 0;
+  padding-left: 1rem;
+}
+
+.resultBox li {
+  margin-bottom: 0.2rem;
+}

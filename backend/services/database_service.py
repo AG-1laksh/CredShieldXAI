@@ -26,14 +26,23 @@ class DatabaseService:
                     timestamp TEXT NOT NULL,
                     input_json TEXT NOT NULL,
                     pd_score REAL NOT NULL,
+                    model_version TEXT NOT NULL DEFAULT '1.0.0',
                     top_risk_increasing_json TEXT NOT NULL,
                     top_risk_decreasing_json TEXT NOT NULL
                 )
                 """
             )
+            columns = {row[1] for row in conn.execute("PRAGMA table_info(predictions)").fetchall()}
+            if "model_version" not in columns:
+                conn.execute("ALTER TABLE predictions ADD COLUMN model_version TEXT NOT NULL DEFAULT '1.0.0'")
             conn.commit()
 
-    def log_prediction(self, model_input: Dict[str, Any], model_output: Dict[str, Any]) -> None:
+    def log_prediction(
+        self,
+        model_input: Dict[str, Any],
+        model_output: Dict[str, Any],
+        model_version: str = "1.0.0",
+    ) -> None:
         now_iso = datetime.now(timezone.utc).isoformat()
 
         with self._connect() as conn:
@@ -43,19 +52,94 @@ class DatabaseService:
                     timestamp,
                     input_json,
                     pd_score,
+                    model_version,
                     top_risk_increasing_json,
                     top_risk_decreasing_json
-                ) VALUES (?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
                     now_iso,
                     json.dumps(model_input),
                     float(model_output["probability_of_default"]),
+                    model_version,
                     json.dumps(model_output["top_risk_increasing"]),
                     json.dumps(model_output["top_risk_decreasing"]),
                 ),
             )
             conn.commit()
+
+    def fetch_audit_logs(self, limit: int = 100) -> List[Dict[str, Any]]:
+        with self._connect() as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                """
+                SELECT id, timestamp, input_json, pd_score, model_version
+                FROM predictions
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+
+        return [
+            {
+                "id": int(row["id"]),
+                "timestamp": row["timestamp"],
+                "pd_score": float(row["pd_score"]),
+                "model_version": row["model_version"] or "1.0.0",
+                "input_payload": json.loads(row["input_json"]),
+            }
+            for row in rows
+        ]
+
+    def fetch_fairness_metrics(self) -> Dict[str, Any]:
+        with self._connect() as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                """
+                SELECT input_json, pd_score
+                FROM predictions
+                ORDER BY id DESC
+                """
+            ).fetchall()
+
+        parsed = [
+            {
+                "input": json.loads(row["input_json"]),
+                "pd_score": float(row["pd_score"]),
+            }
+            for row in rows
+        ]
+
+        def aggregate_by(field: str) -> List[Dict[str, Any]]:
+            buckets: Dict[str, Dict[str, Any]] = {}
+            for item in parsed:
+                key = str(item["input"].get(field, "unknown"))
+                if key not in buckets:
+                    buckets[key] = {"count": 0, "pd_sum": 0.0, "high": 0}
+                buckets[key]["count"] += 1
+                buckets[key]["pd_sum"] += item["pd_score"]
+                if item["pd_score"] >= 0.5:
+                    buckets[key]["high"] += 1
+
+            result: List[Dict[str, Any]] = []
+            for group, metrics in buckets.items():
+                count = metrics["count"]
+                result.append(
+                    {
+                        "group": group,
+                        "count": int(count),
+                        "avg_pd": float(metrics["pd_sum"] / count) if count else 0.0,
+                        "high_risk_rate": float(metrics["high"] / count) if count else 0.0,
+                    }
+                )
+            return sorted(result, key=lambda x: x["count"], reverse=True)
+
+        return {
+            "overall_count": len(parsed),
+            "by_personal_status": aggregate_by("personal_status"),
+            "by_foreign_worker": aggregate_by("foreign_worker"),
+        }
 
     def fetch_trends(self) -> Dict[str, Any]:
         with self._connect() as conn:

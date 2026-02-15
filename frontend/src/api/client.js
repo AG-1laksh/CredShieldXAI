@@ -72,3 +72,45 @@ export async function fetchAnalytics() {
     throw error;
   }
 }
+
+export async function predictBatch(items) {
+  const response = await fetch(`${API_BASE_URL}/predict/batch`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Batch prediction failed: ${errorText}`);
+  }
+
+  return response.json();
+}
+
+export async function fetchAuditLogs(limit = 100) {
+  const response = await fetch(`${API_BASE_URL}/audit-logs?limit=${limit}`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Audit logs request failed: ${errorText}`);
+  }
+  return response.json();
+}
+
+export async function fetchModelRegistry() {
+  const response = await fetch(`${API_BASE_URL}/model-registry`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Model registry request failed: ${errorText}`);
+  }
+  return response.json();
+}
+
+export async function fetchFairnessMetrics() {
+  const response = await fetch(`${API_BASE_URL}/fairness`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Fairness metrics request failed: ${errorText}`);
+  }
+  return response.json();
+}

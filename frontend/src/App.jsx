@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react';
 import { jsPDF } from 'jspdf';
-import { checkHealth, predictRisk } from './api/client';
+import {
+  checkHealth,
+  fetchAuditLogs,
+  fetchFairnessMetrics,
+  fetchModelRegistry,
+  predictBatch,
+  predictRisk,
+} from './api/client';
+import AdminPanel from './components/AdminPanel';
 import AssessmentForm from './components/AssessmentForm';
+import BatchScoringPanel from './components/BatchScoringPanel';
 import DecisionSupportPanel from './components/DecisionSupportPanel';
 import OnboardingTour from './components/OnboardingTour';
 import WhatIfSimulator from './components/WhatIfSimulator';
@@ -42,6 +51,10 @@ function App() {
   const [baselineScenario, setBaselineScenario] = useState(() => readSessionState('credishield-baseline', null));
   const [language, setLanguage] = useState(() => readSessionState('credishield-language', 'en'));
   const [tourOpen, setTourOpen] = useState(() => readSessionState('credishield-tour-open', true));
+  const [role, setRole] = useState(() => readSessionState('credishield-role', 'end_user'));
+  const [modelInfo, setModelInfo] = useState(null);
+  const [fairnessMetrics, setFairnessMetrics] = useState(null);
+  const [auditLogs, setAuditLogs] = useState([]);
   const t = TEXT[language] ?? TEXT.en;
 
   const updateField = (field, value) => {
@@ -100,6 +113,39 @@ function App() {
     } catch (e) {
       setApiHealth({ status: 'down', message: t.apiOffline });
     }
+  };
+
+  const refreshAdminData = async () => {
+    if (role === 'end_user') return;
+    try {
+      const [model, fairness, logs] = await Promise.all([
+        fetchModelRegistry(),
+        fetchFairnessMetrics(),
+        fetchAuditLogs(120),
+      ]);
+      setModelInfo(model);
+      setFairnessMetrics(fairness);
+      setAuditLogs(logs.entries ?? []);
+    } catch (e) {
+      console.error('Admin data refresh failed', e);
+    }
+  };
+
+  const handleBatchScoring = async (rows) => {
+    const normalized = rows.map((row) => ({
+      ...row,
+      duration: Number(row.duration),
+      credit_amount: Number(row.credit_amount),
+      installment_commitment: Number(row.installment_commitment),
+      residence_since: Number(row.residence_since),
+      age: Number(row.age),
+      existing_credits: Number(row.existing_credits),
+      num_dependents: Number(row.num_dependents),
+    }));
+
+    const result = await predictBatch(normalized);
+    await refreshAdminData();
+    return result;
   };
 
   const handleSaveScenario = () => {
@@ -185,10 +231,18 @@ function App() {
   }, [tourOpen]);
 
   useEffect(() => {
+    saveSessionState('credishield-role', role);
+  }, [role]);
+
+  useEffect(() => {
     refreshHealth();
     const interval = setInterval(refreshHealth, 15000);
     return () => clearInterval(interval);
   }, [language]);
+
+  useEffect(() => {
+    refreshAdminData();
+  }, [role]);
 
   useEffect(() => {
     if (!simulationEnabled) {
@@ -219,6 +273,14 @@ function App() {
               <button type="button" className={language === 'hi' ? styles.langActive : ''} onClick={() => setLanguage('hi')}>
                 {t.hindi}
               </button>
+            </div>
+            <div className={styles.roleSwitch}>
+              <span>Role</span>
+              <select value={role} onChange={(e) => setRole(e.target.value)}>
+                <option value="end_user">End User</option>
+                <option value="analyst">Analyst</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
             <button className={styles.tourBtn} type="button" onClick={() => setTourOpen(true)}>
               {t.startTour}
@@ -276,6 +338,10 @@ function App() {
             t={t}
             language={language}
           />
+
+          <BatchScoringPanel role={role} onRunBatch={handleBatchScoring} loading={loading} />
+
+          <AdminPanel role={role} modelInfo={modelInfo} fairness={fairnessMetrics} auditLogs={auditLogs} />
         </div>
 
         <div className={styles.vizColumn}>

@@ -59,6 +59,32 @@
   color: #fff;
 }
 
+.roleSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 0.2rem 0.35rem 0.2rem 0.55rem;
+}
+
+.roleSwitch span {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.roleSwitch select {
+  border: none;
+  background: #e2e8f0;
+  border-radius: 999px;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.75rem;
+  color: #1e293b;
+  font-weight: 700;
+}
+
 .tourBtn {
   border: 1px solid #bfdbfe;
   background: #eff6ff;

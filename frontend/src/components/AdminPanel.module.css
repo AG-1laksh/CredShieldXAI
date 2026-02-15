@@ -1,0 +1,63 @@
+.card {
+  background: var(--surface-color);
+  border: 1px solid var(--surface-border);
+  border-radius: 20px;
+  padding: 1.8rem;
+  box-shadow: var(--neu-shadow-flat);
+}
+
+.card h2 {
+  margin: 0 0 1rem;
+  color: var(--primary-dark);
+}
+
+.block {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.block h3 {
+  margin: 0 0 0.6rem;
+  color: #1e3a8a;
+  font-size: 0.98rem;
+}
+
+.metaList {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.metaList li {
+  margin-bottom: 0.3rem;
+  color: #334155;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.45rem;
+  text-align: left;
+}
+
+.table th {
+  color: #64748b;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+}
+
+.auditWrap {
+  max-height: 240px;
+  overflow: auto;
+}
+
+.empty {
+  margin: 0;
+  color: #64748b;
+}
