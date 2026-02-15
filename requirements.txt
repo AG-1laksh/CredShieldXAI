@@ -1,0 +1,10 @@
+fastapi>=0.116.0
+uvicorn[standard]>=0.35.0
+pydantic>=2.11.0
+pandas>=2.3.0
+numpy>=2.1.0
+scikit-learn>=1.6.0
+imbalanced-learn>=0.13.0
+xgboost>=2.1.0
+shap>=0.46.0
+joblib>=1.4.0
