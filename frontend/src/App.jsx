@@ -57,6 +57,7 @@ function App({ googleClientIdConfigured = false }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [simulationEnabled, setSimulationEnabled] = useState(false);
   const [apiHealth, setApiHealth] = useState({ status: 'checking', message: 'Checking API status…' });
+  const [healthRetryCount, setHealthRetryCount] = useState(0);
   const [savedScenarios, setSavedScenarios] = useState(() => readSessionState('credishield-scenarios', []));
   const [history, setHistory] = useState(() => readSessionState('credishield-history', []));
   const [baselineScenario, setBaselineScenario] = useState(() => readSessionState('credishield-baseline', null));
@@ -151,9 +152,17 @@ function App({ googleClientIdConfigured = false }) {
   const refreshHealth = async () => {
     try {
       const res = await checkHealth();
+      setHealthRetryCount(0);
       setApiHealth({ status: 'up', message: `${res.service} ${t.apiOnline}` });
     } catch (e) {
-      setApiHealth({ status: 'down', message: t.apiOffline });
+      setHealthRetryCount((prev) => {
+        const next = prev + 1;
+        setApiHealth({
+          status: 'reconnecting',
+          message: `${t.apiReconnecting} ${next}${t.attemptSuffix ?? ''}`,
+        });
+        return next;
+      });
     }
   };
 
@@ -354,10 +363,15 @@ function App({ googleClientIdConfigured = false }) {
   }, [userSkippedLogin]);
 
   useEffect(() => {
-    refreshHealth();
-    const interval = setInterval(refreshHealth, 15000);
-    return () => clearInterval(interval);
-  }, [language]);
+    let timer;
+    const tick = async () => {
+      await refreshHealth();
+      timer = setTimeout(tick, apiHealth.status === 'up' ? 15000 : 5000);
+    };
+
+    tick();
+    return () => clearTimeout(timer);
+  }, [language, apiHealth.status]);
 
   useEffect(() => {
     refreshAdminData();
