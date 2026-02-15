@@ -8,6 +8,7 @@ from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import Query
+from fastapi import Request
 
 from backend.api.security import auth_service, require_roles
 from backend.models.schemas import (
@@ -332,12 +333,14 @@ def list_reports(
 @router.post("/reports/{report_id}/share", response_model=ReportShareResponse)
 def create_report_share_link(
     report_id: int,
+    request: Request,
     ttl_minutes: int = Query(default=60, ge=1, le=10080),
     user: AuthenticatedUser = Depends(require_roles("analyst", "admin")),
 ) -> ReportShareResponse:
     try:
         payload = database_service.create_report_share_link(report_id=report_id, created_by=user.email, ttl_minutes=ttl_minutes)
-        payload["share_url"] = f"http://127.0.0.1:8000/public/reports/{payload['token']}"
+        base_url = str(request.base_url).rstrip("/") if request else ""
+        payload["share_url"] = f"{base_url}/public/reports/{payload['token']}" if base_url else f"/public/reports/{payload['token']}"
         return ReportShareResponse(**payload)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc

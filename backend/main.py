@@ -34,6 +34,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+app.include_router(api_router, prefix="/api")
 
 
 @app.exception_handler(RequestValidationError)
@@ -45,3 +46,9 @@ async def validation_exception_handler(_, exc: RequestValidationError) -> JSONRe
 @app.get("/")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "CrediShield XAI API"}
+
+
+@app.get("/api")
+@app.get("/api/")
+def health_api() -> dict[str, str]:
+    return health()

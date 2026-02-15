@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Tuple
 import joblib
 import numpy as np
 import pandas as pd
-import shap
 import xgboost as xgb
 from imblearn.over_sampling import SMOTE
 from sklearn.compose import ColumnTransformer
@@ -15,6 +14,11 @@ from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from xgboost import XGBClassifier
+
+try:
+    import shap  # type: ignore
+except Exception:
+    shap = None
 
 
 ARTIFACT_DIR = Path("models")
@@ -191,16 +195,22 @@ def _compute_shap_values_row(bundle: Dict[str, Any], transformed: Any) -> np.nda
     model = bundle["model"]
 
     try:
-        explainer = shap.TreeExplainer(model)
-        shap_result = explainer.shap_values(transformed)
-        if isinstance(shap_result, list):
-            return np.asarray(shap_result[-1])[0]
-        return np.asarray(shap_result)[0]
+        if shap is not None:
+            explainer = shap.TreeExplainer(model)
+            shap_result = explainer.shap_values(transformed)
+            if isinstance(shap_result, list):
+                return np.asarray(shap_result[-1])[0]
+            return np.asarray(shap_result)[0]
     except Exception:
+        pass
+
+    try:
         dmatrix = xgb.DMatrix(transformed)
         contribs = model.get_booster().predict(dmatrix, pred_contribs=True)
         # Last column is bias term; exclude to align with transformed feature names.
         return np.asarray(contribs)[0][:-1]
+    except Exception as exc:
+        raise RuntimeError("Unable to compute feature contributions") from exc
 
 
 def get_explanation(input_data: Dict[str, Any]) -> Dict[str, Any]:

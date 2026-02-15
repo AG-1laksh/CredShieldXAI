@@ -92,26 +92,24 @@ In this project, SHAP values are aggregated to business-level factors and surfac
 
 No external API keys are required for the current baseline implementation.
 
-## Deployment (Recommended): Vercel + Render split
+## Deployment: Vercel-only (Frontend + Backend)
 
-This repo is configured for **split deployment**:
+This repo supports **single-platform deployment on Vercel**:
 
-- **Frontend (Vite React)** on Vercel
-- **Backend (FastAPI + XGBoost/SHAP)** on Render
+- **Frontend (Vite React)** served as static assets
+- **Backend (FastAPI)** served via Vercel Python function (`api/index.py`)
 
-This avoids serverless size/cold-start issues for ML-heavy Python dependencies.
+Production API calls use `/api/*` on the same Vercel domain.
 
 ### Included deployment files
 
-- `vercel.json` → frontend-only Vercel static build + SPA routes
-- `render.yaml` → Render web service for FastAPI backend
+- `vercel.json` → static frontend build + Python API route wiring
+- `api/index.py` → FastAPI serverless entrypoint for Vercel
 - `frontend/.env.production.example` → production env template
 
-### 1) Deploy backend on Render
+### 1) Prepare environment variables in Vercel
 
-1. Push repo to GitHub.
-2. In Render, create service from repo using `render.yaml`.
-3. Add backend env vars in Render dashboard:
+In your Vercel project settings, add these backend variables:
   - `GOOGLE_CLIENT_ID`
   - `JWT_SECRET`
   - `JWT_ALGORITHM` (default `HS256`)
@@ -119,19 +117,21 @@ This avoids serverless size/cold-start issues for ML-heavy Python dependencies.
   - `ALLOWED_ORG_DOMAINS`
   - `ALLOWED_ANALYST_EMAILS`
   - `ALLOWED_ADMIN_EMAILS`
-4. Deploy and copy the Render service URL (e.g. `https://credishield-xai-api.onrender.com`).
 
-### 2) Deploy frontend on Vercel
+Add frontend variables too:
+
+- `VITE_API_BASE_URL=/api`
+- `VITE_GOOGLE_CLIENT_ID=<your-google-client-id>`
+
+### 2) Deploy project on Vercel
 
 1. Import the same repo in Vercel.
 2. Keep root directory as repository root.
-3. Add frontend env vars in Vercel:
-  - `VITE_API_BASE_URL=https://<your-render-backend-url>`
-  - `VITE_GOOGLE_CLIENT_ID=<your-google-client-id>`
-4. Deploy.
+3. Deploy.
 
 ### 3) Verify production
 
+- Open `<your-vercel-url>/api/` and confirm it returns API health JSON.
 - Open frontend URL and confirm health badge becomes online.
 - Test a prediction request.
 - Test analyst/admin login and protected endpoints.
