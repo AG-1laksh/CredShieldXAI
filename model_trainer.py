@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -22,18 +21,7 @@ ARTIFACT_PATH = ARTIFACT_DIR / "credit_risk_bundle.joblib"
 TARGET_COLUMN = "default"
 RANDOM_STATE = 42
 
-
-@dataclass
-class CreditRiskBundle:
-    preprocessor: ColumnTransformer
-    model: XGBClassifier
-    feature_names: List[str]
-    base_feature_map: Dict[str, str]
-    categorical_features: List[str]
-    numerical_features: List[str]
-
-
-_bundle_cache: CreditRiskBundle | None = None
+_bundle_cache: Dict[str, Any] | None = None
 
 
 def _load_dataset() -> Tuple[pd.DataFrame, pd.Series]:
@@ -139,14 +127,14 @@ def train_and_save_model(output_path: Path = ARTIFACT_PATH) -> Dict[str, float]:
     feature_names = preprocessor.get_feature_names_out().tolist()
     base_feature_map = _build_feature_map(feature_names, categorical_features, numerical_features)
 
-    bundle = CreditRiskBundle(
-        preprocessor=preprocessor,
-        model=model,
-        feature_names=feature_names,
-        base_feature_map=base_feature_map,
-        categorical_features=categorical_features,
-        numerical_features=numerical_features,
-    )
+    bundle = {
+        "preprocessor": preprocessor,
+        "model": model,
+        "feature_names": feature_names,
+        "base_feature_map": base_feature_map,
+        "categorical_features": categorical_features,
+        "numerical_features": numerical_features,
+    }
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(bundle, output_path)
@@ -157,7 +145,7 @@ def train_and_save_model(output_path: Path = ARTIFACT_PATH) -> Dict[str, float]:
     return {"roc_auc": float(auc)}
 
 
-def load_bundle(artifact_path: Path = ARTIFACT_PATH) -> CreditRiskBundle:
+def load_bundle(artifact_path: Path = ARTIFACT_PATH) -> Dict[str, Any]:
     global _bundle_cache
     if _bundle_cache is not None:
         return _bundle_cache
@@ -165,7 +153,20 @@ def load_bundle(artifact_path: Path = ARTIFACT_PATH) -> CreditRiskBundle:
     if not artifact_path.exists():
         train_and_save_model(output_path=artifact_path)
 
-    _bundle_cache = joblib.load(artifact_path)
+    try:
+        loaded = joblib.load(artifact_path)
+        if isinstance(loaded, dict):
+            _bundle_cache = loaded
+        else:
+            # Legacy artifact format (custom class); retrain to normalize.
+            train_and_save_model(output_path=artifact_path)
+    except Exception:
+        # Corrupt/incompatible artifact fallback
+        train_and_save_model(output_path=artifact_path)
+
+    if _bundle_cache is None:
+        _bundle_cache = joblib.load(artifact_path)
+
     return _bundle_cache
 
 
@@ -198,11 +199,11 @@ def get_explanation(input_data: Dict[str, Any]) -> Dict[str, Any]:
     bundle = load_bundle()
 
     input_df = pd.DataFrame([input_data])
-    transformed = bundle.preprocessor.transform(input_df)
+    transformed = bundle["preprocessor"].transform(input_df)
 
-    pd_score = float(bundle.model.predict_proba(transformed)[0, 1])
+    pd_score = float(bundle["model"].predict_proba(transformed)[0, 1])
 
-    explainer = shap.TreeExplainer(bundle.model)
+    explainer = shap.TreeExplainer(bundle["model"])
     shap_result = explainer.shap_values(transformed)
 
     # SHAP output for binary classifiers may be list-like or ndarray depending on version.
@@ -213,8 +214,8 @@ def get_explanation(input_data: Dict[str, Any]) -> Dict[str, Any]:
 
     aggregated = _aggregate_shap_by_base_feature(
         shap_values_row=shap_values_row,
-        feature_names=bundle.feature_names,
-        feature_map=bundle.base_feature_map,
+        feature_names=bundle["feature_names"],
+        feature_map=bundle["base_feature_map"],
     )
 
     sorted_impacts = sorted(aggregated.items(), key=lambda kv: kv[1], reverse=True)
@@ -237,8 +238,8 @@ def get_explanation(input_data: Dict[str, Any]) -> Dict[str, Any]:
 def get_training_schema() -> Dict[str, List[str]]:
     bundle = load_bundle()
     return {
-        "categorical_features": bundle.categorical_features,
-        "numerical_features": bundle.numerical_features,
+        "categorical_features": bundle["categorical_features"],
+        "numerical_features": bundle["numerical_features"],
     }
 
 
