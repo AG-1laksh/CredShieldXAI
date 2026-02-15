@@ -164,6 +164,33 @@
   border-top: 1px solid #e2e8f0;
 }
 
+.validationBox {
+  margin-top: 1.3rem;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #f59e0b;
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+}
+
+.validationBox h3 {
+  margin: 0 0 0.45rem;
+  font-size: 0.9rem;
+  color: #92400e;
+}
+
+.validationBox ul {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.validationBox li {
+  color: #92400e;
+  font-size: 0.83rem;
+  line-height: 1.45;
+  margin-bottom: 0.25rem;
+}
+
 .button {
   padding: 1rem 2rem;
   border-radius: 12px;

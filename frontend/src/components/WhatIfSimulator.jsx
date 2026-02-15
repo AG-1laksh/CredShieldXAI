@@ -9,13 +9,33 @@ const SLIDER_CONFIG = [
   { key: 'num_dependents', min: 1, max: 2, step: 1, label: 'Dependents' },
 ];
 
-export default function WhatIfSimulator({ formData, onScenarioChange, isEnabled, loading }) {
+const SLIDER_LABELS_HI = {
+  duration: 'भुगतान समय (महीने)',
+  credit_amount: 'लोन राशि',
+  age: 'आयु',
+  installment_commitment: 'मासिक भुगतान भार',
+  existing_credits: 'सक्रिय लोन',
+  num_dependents: 'निर्भर लोग',
+};
+
+export default function WhatIfSimulator({
+  formData,
+  onScenarioChange,
+  isEnabled,
+  loading,
+  t = {
+    whatIfTitle: 'What-If Simulator',
+    whatIfSubtitle: 'Adjust sliders to trigger instant re-scoring and observe risk movement in real time.',
+    whatIfHint: 'Run the first assessment to activate simulation.',
+  },
+  language = 'en',
+}) {
   return (
     <section className={styles.card}>
       <div className={styles.header}>
-        <h2>What-If Simulator</h2>
+        <h2>{t.whatIfTitle}</h2>
         <p className={styles.empty}>
-            Adjust sliders to trigger instant re-scoring and observe risk movement in real time.
+            {t.whatIfSubtitle}
         </p>
       </div>
 
@@ -23,7 +43,7 @@ export default function WhatIfSimulator({ formData, onScenarioChange, isEnabled,
         {SLIDER_CONFIG.map((slider) => (
           <div key={slider.key} className={styles.controlGroup}>
             <label>
-              <span>{slider.label}</span>
+              <span>{language === 'hi' ? (SLIDER_LABELS_HI[slider.key] ?? slider.label) : slider.label}</span>
               <span>{formData[slider.key]}</span>
             </label>
             <input
@@ -42,7 +62,7 @@ export default function WhatIfSimulator({ formData, onScenarioChange, isEnabled,
 
       {!isEnabled && (
         <div style={{textAlign: 'center', marginTop: '1rem', color: 'var(--text-secondary)'}}>
-             Run the first assessment to activate simulation.
+             {t.whatIfHint}
         </div>
       )}
     </section>

@@ -19,6 +19,57 @@
   gap: 1rem;
 }
 
+.topControls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.55rem;
+}
+
+.langSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 0.2rem;
+}
+
+.langSwitch span {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 0 0.35rem 0 0.55rem;
+  font-weight: 700;
+}
+
+.langSwitch button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  background: transparent;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.langSwitch .langActive {
+  background: #2563eb;
+  color: #fff;
+}
+
+.tourBtn {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .header::after {
   content: '';
   position: absolute;

@@ -16,17 +16,43 @@ export default function DecisionSupportPanel({
   history,
   onSaveScenario,
   onExportPdf,
+  language = 'en',
+  t = {
+    decisionTitle: 'Decision Support',
+    confidence: 'Confidence',
+    saveScenario: 'Save Current Scenario',
+    exportPdf: 'Export PDF Report',
+    improveScore: 'How to Improve My Score',
+    scenarioComparison: 'Scenario Comparison',
+    noScenario: 'No saved scenarios yet.',
+    sessionHistory: 'Session History',
+    noHistory: 'No assessments in this session yet.',
+    scenario: 'Scenario',
+    baselineDelta: 'Δ vs Baseline',
+    topFactors: 'Top Risk Factors',
+    confidenceHigh: 'High',
+    confidenceMedium: 'Medium',
+    confidenceLow: 'Low',
+    confidenceSuffix: 'confidence',
+  },
 }) {
   if (!prediction) return null;
 
   const baselinePd = baselineScenario?.prediction?.probability_of_default ?? null;
 
+  const getBandLabel = (band) => {
+    if (band === 'High') return t.confidenceHigh ?? band;
+    if (band === 'Medium') return t.confidenceMedium ?? band;
+    if (band === 'Low') return t.confidenceLow ?? band;
+    return band;
+  };
+
   return (
     <section className={styles.card}>
       <div className={styles.headerRow}>
-        <h2>Decision Support</h2>
+        <h2>{t.decisionTitle}</h2>
         <div className={`${styles.confidencePill} ${confidenceClass(confidence.band)}`}>
-          Confidence: {confidence.band}
+          {t.confidence}: {getBandLabel(confidence.band)}
         </div>
       </div>
 
@@ -34,15 +60,15 @@ export default function DecisionSupportPanel({
 
       <div className={styles.actions}>
         <button className={styles.primaryBtn} onClick={onSaveScenario} type="button">
-          Save Current Scenario
+          {t.saveScenario}
         </button>
         <button className={styles.secondaryBtn} onClick={onExportPdf} type="button">
-          Export PDF Report
+          {t.exportPdf}
         </button>
       </div>
 
       <div className={styles.block}>
-        <h3>How to Improve My Score</h3>
+        <h3>{t.improveScore}</h3>
         <ul>
           {recommendations.map((tip) => (
             <li key={tip}>{tip}</li>
@@ -51,18 +77,18 @@ export default function DecisionSupportPanel({
       </div>
 
       <div className={styles.block}>
-        <h3>Scenario Comparison</h3>
+        <h3>{t.scenarioComparison}</h3>
         {scenarios.length === 0 ? (
-          <p className={styles.empty}>No saved scenarios yet. Adjust sliders and save scenarios to compare.</p>
+          <p className={styles.empty}>{t.noScenario}</p>
         ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Scenario</th>
+                  <th>{t.scenario}</th>
                   <th>PD%</th>
-                  <th>Δ vs Baseline</th>
-                  <th>Top Risk Factors</th>
+                  <th>{t.baselineDelta}</th>
+                  <th>{t.topFactors}</th>
                 </tr>
               </thead>
               <tbody>
@@ -81,7 +107,7 @@ export default function DecisionSupportPanel({
                           ? '—'
                           : `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%`}
                       </td>
-                      <td>{summarizeTopFactors(scenario.prediction, 2)}</td>
+                      <td>{summarizeTopFactors(scenario.prediction, 2, language)}</td>
                     </tr>
                   );
                 })}
@@ -92,16 +118,16 @@ export default function DecisionSupportPanel({
       </div>
 
       <div className={styles.block}>
-        <h3>Session History</h3>
+        <h3>{t.sessionHistory}</h3>
         {history.length === 0 ? (
-          <p className={styles.empty}>No assessments in this session yet.</p>
+          <p className={styles.empty}>{t.noHistory}</p>
         ) : (
           <ul className={styles.historyList}>
             {history.map((entry) => (
               <li key={entry.id}>
                 <span>{new Date(entry.timestamp).toLocaleString()}</span>
                 <strong>{(entry.prediction.probability_of_default * 100).toFixed(1)}%</strong>
-                <em>{entry.confidenceBand} confidence</em>
+                <em>{getBandLabel(entry.confidenceBand)} {t.confidenceSuffix ?? 'confidence'}</em>
               </li>
             ))}
           </ul>

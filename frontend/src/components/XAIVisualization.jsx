@@ -24,7 +24,7 @@ const COLORS = {
   tooltipText: '#1e293b'
 };
 
-const FEATURE_LABELS = {
+const FEATURE_LABELS_EN = {
   checking_status: 'Money in Checking Account',
   savings_status: 'Money in Savings',
   duration: 'Repayment Time',
@@ -36,7 +36,19 @@ const FEATURE_LABELS = {
   purpose: 'Why You Need the Loan',
 };
 
-const FEATURE_MEANINGS = {
+const FEATURE_LABELS_HI = {
+  checking_status: 'चेकिंग खाते में राशि',
+  savings_status: 'बचत में राशि',
+  duration: 'भुगतान समय',
+  num__duration: 'भुगतान समय',
+  credit_amount: 'लोन राशि',
+  num__credit_amount: 'लोन राशि',
+  installment_commitment: 'मासिक भुगतान भार',
+  num__installment_commitment: 'मासिक भुगतान भार',
+  purpose: 'लोन लेने का कारण',
+};
+
+const FEATURE_MEANINGS_EN = {
   checking_status: 'This shows the balance range in your checking account.',
   savings_status: 'This shows the balance range in your savings account.',
   duration: 'How many months you will take to repay the loan.',
@@ -48,8 +60,21 @@ const FEATURE_MEANINGS = {
   purpose: 'The reason for taking the loan (car, business, home items, etc.).',
 };
 
-function getFeatureLabel(feature) {
-  if (FEATURE_LABELS[feature]) return FEATURE_LABELS[feature];
+const FEATURE_MEANINGS_HI = {
+  checking_status: 'यह आपके चेकिंग खाते की बैलेंस रेंज दिखाता है।',
+  savings_status: 'यह आपके बचत खाते की बैलेंस रेंज दिखाता है।',
+  duration: 'लोन चुकाने में कुल कितने महीने लगेंगे।',
+  num__duration: 'लोन चुकाने में कुल कितने महीने लगेंगे।',
+  credit_amount: 'आप कुल कितनी राशि उधार लेना चाहते हैं।',
+  num__credit_amount: 'आप कुल कितनी राशि उधार लेना चाहते हैं।',
+  installment_commitment: 'मासिक लोन भुगतान का भार (कम से अधिक)।',
+  num__installment_commitment: 'मासिक लोन भुगतान का भार (कम से अधिक)।',
+  purpose: 'लोन का उपयोग किस काम के लिए होगा।',
+};
+
+function getFeatureLabel(feature, language = 'en') {
+  const dictionary = language === 'hi' ? FEATURE_LABELS_HI : FEATURE_LABELS_EN;
+  if (dictionary[feature]) return dictionary[feature];
   const normalized = feature
     .replace('num__', '')
     .replaceAll('_', ' ')
@@ -57,19 +82,21 @@ function getFeatureLabel(feature) {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-function getFeatureMeaning(feature) {
-  return FEATURE_MEANINGS[feature] ?? 'This is one of the factors used by the AI to estimate loan risk.';
+function getFeatureMeaning(feature, language = 'en') {
+  const dictionary = language === 'hi' ? FEATURE_MEANINGS_HI : FEATURE_MEANINGS_EN;
+  return dictionary[feature] ?? (language === 'hi'
+    ? 'यह AI द्वारा जोखिम स्कोर निकालने में उपयोग होने वाला एक कारक है।'
+    : 'This is one of the factors used by the AI to estimate loan risk.');
 }
 
-function ExplainabilityIntro() {
+function ExplainabilityIntro({ t }) {
   return (
     <div className={styles.explainBox}>
       <p>
-        <strong>XAI Visualization:</strong> This section explains <em>why</em> the AI gave your risk result, not just the final score.
+        {t.xaiExplain1}
       </p>
       <p>
-        <strong>SHAP:</strong> SHAP is a method that shows how each input (like loan amount or repayment time)
-        pushes your risk score up or down.
+        {t.xaiExplain2}
       </p>
     </div>
   );
@@ -79,7 +106,7 @@ function formatPct(value) {
   return `${(value * 100).toFixed(1)}%`;
 }
 
-function buildWaterfallData(prediction) {
+function buildWaterfallData(prediction, language = 'en') {
   const items = [
     ...(prediction?.top_risk_increasing ?? []).map((item) => ({ ...item, direction: 'up' })),
     ...(prediction?.top_risk_decreasing ?? []).map((item) => ({ ...item, direction: 'down' })),
@@ -88,8 +115,8 @@ function buildWaterfallData(prediction) {
 
   return items.map((item) => ({
     feature: item.feature,
-    featureLabel: getFeatureLabel(item.feature),
-    featureMeaning: getFeatureMeaning(item.feature),
+    featureLabel: getFeatureLabel(item.feature, language),
+    featureMeaning: getFeatureMeaning(item.feature, language),
     impact: item.impact,
     impactAbs: Math.abs(item.impact),
     color: item.direction === 'up' ? COLORS.highRisk : COLORS.lowRisk,
@@ -97,15 +124,32 @@ function buildWaterfallData(prediction) {
   }));
 }
 
-export default function XAIVisualization({ prediction, loading = false }) {
+export default function XAIVisualization({
+  prediction,
+  loading = false,
+  language = 'en',
+  t = {
+    xaiTitle: 'XAI Visualization',
+    xaiEmpty: 'Run an assessment to view risk gauge and SHAP waterfall.',
+    xaiExplain1: 'XAI Visualization explains why AI produced this score.',
+    xaiExplain2: 'SHAP shows which factors push risk up or down.',
+    riskGauge: 'Risk Gauge',
+    shapWaterfall: 'SHAP Waterfall',
+    highRisk: 'High Risk',
+    lowRisk: 'Low Risk',
+    increaseRisk: 'Things Increasing Risk',
+    decreaseRisk: 'Things Decreasing Risk',
+    termsTitle: 'What These Terms Mean',
+  },
+}) {
 
   if (loading) {
     return (
       <section className={styles.card}>
         <div className={styles.header}>
-           <h2>XAI Visualization</h2>
+            <h2>{t.xaiTitle}</h2>
         </div>
-        <ExplainabilityIntro />
+          <ExplainabilityIntro t={t} />
         <div className={styles.skeletonGrid}>
           <div className={styles.skeletonCard} />
           <div className={styles.skeletonCard} />
@@ -118,9 +162,9 @@ export default function XAIVisualization({ prediction, loading = false }) {
     return (
       <section className={styles.card}>
         <div className={styles.header}>
-            <h2>XAI Visualization</h2>
-            <ExplainabilityIntro />
-            <p className={styles.empty}>Run an assessment to view risk gauge and SHAP waterfall.</p>
+          <h2>{t.xaiTitle}</h2>
+          <ExplainabilityIntro t={t} />
+          <p className={styles.empty}>{t.xaiEmpty}</p>
         </div>
       </section>
     );
@@ -130,22 +174,22 @@ export default function XAIVisualization({ prediction, loading = false }) {
   const isHighRisk = pd >= 0.5;
   const riskColor = isHighRisk ? COLORS.highRisk : COLORS.lowRisk;
   const gaugeData = [{ name: 'PD', value: pd * 100, fill: riskColor }];
-  const waterfallData = buildWaterfallData(prediction);
+  const waterfallData = buildWaterfallData(prediction, language);
   const featureGlossary = Array.from(new Map(
     [...(prediction.top_risk_increasing ?? []), ...(prediction.top_risk_decreasing ?? [])]
-      .map((item) => [item.feature, { key: item.feature, label: getFeatureLabel(item.feature), meaning: getFeatureMeaning(item.feature) }])
+      .map((item) => [item.feature, { key: item.feature, label: getFeatureLabel(item.feature, language), meaning: getFeatureMeaning(item.feature, language) }])
   ).values());
 
   return (
     <section className={styles.card}>
       <div className={styles.header}>
-        <h2>XAI Visualization</h2>
+        <h2>{t.xaiTitle}</h2>
       </div>
-      <ExplainabilityIntro />
+      <ExplainabilityIntro t={t} />
 
       <div className={styles.panels}>
         <div className={styles.panel}>
-          <h3>Risk Gauge</h3>
+          <h3>{t.riskGauge}</h3>
           <div className={styles.chartWrap}>
             <ResponsiveContainer width="100%" height={240}>
               <RadialBarChart
@@ -169,21 +213,21 @@ export default function XAIVisualization({ prediction, loading = false }) {
                     background: isHighRisk ? 'rgba(249, 115, 22, 0.1)' : 'rgba(37, 99, 235, 0.1)',
                     border: `1px solid ${isHighRisk ? 'rgba(249, 115, 22, 0.2)' : 'rgba(37, 99, 235, 0.2)'}`
                 }}>
-                    {isHighRisk ? 'High Risk' : 'Low Risk'}
+                    {isHighRisk ? t.highRisk : t.lowRisk}
                 </span>
             </div>
           </div>
         </div>
 
         <div className={styles.panel}>
-          <h3>SHAP Waterfall</h3>
+          <h3>{t.shapWaterfall}</h3>
           <div className={styles.chartWrap}>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={waterfallData} margin={{top: 20, right: 30, left: 0, bottom: 5}}>
                 <CartesianGrid stroke={COLORS.grid} strokeDasharray="3 3" vertical={false} />
                 <XAxis 
                     dataKey="feature" 
-                  tickFormatter={getFeatureLabel}
+                  tickFormatter={(label) => getFeatureLabel(label, language)}
                     tick={{ fill: COLORS.text, fontSize: 11, fontWeight: 500 }} 
                     interval={0} 
                     angle={-20} 
@@ -199,7 +243,7 @@ export default function XAIVisualization({ prediction, loading = false }) {
                 />
                 <Tooltip
                   cursor={{fill: 'rgba(37, 99, 235, 0.05)'}}
-                  labelFormatter={(label) => getFeatureLabel(label)}
+                  labelFormatter={(label) => getFeatureLabel(label, language)}
                   contentStyle={{ 
                       background: COLORS.tooltipBg, 
                       border: `1px solid ${COLORS.tooltipBorder}`, 
@@ -224,13 +268,13 @@ export default function XAIVisualization({ prediction, loading = false }) {
       
        <div className={styles.reasons}>
         <div>
-          <h4 style={{color: COLORS.highRisk}}>Things Increasing Risk</h4>
+          <h4 style={{color: COLORS.highRisk}}>{t.increaseRisk}</h4>
           <ul>
             {(prediction.top_risk_increasing ?? []).map((r, i) => (
               <li key={`inc-${i}`}>
                 <span>
-                  <span className={styles.reasonFeature}>{getFeatureLabel(r.feature)}</span>
-                  <span className={styles.reasonMeaning}>{getFeatureMeaning(r.feature)}</span>
+                  <span className={styles.reasonFeature}>{getFeatureLabel(r.feature, language)}</span>
+                  <span className={styles.reasonMeaning}>{getFeatureMeaning(r.feature, language)}</span>
                 </span>
                 <span style={{color: COLORS.highRisk, fontWeight: 700}}>+{r.impact.toFixed(4)}</span>
               </li>
@@ -238,13 +282,13 @@ export default function XAIVisualization({ prediction, loading = false }) {
           </ul>
         </div>
         <div>
-          <h4 style={{color: COLORS.lowRisk}}>Things Decreasing Risk</h4>
+          <h4 style={{color: COLORS.lowRisk}}>{t.decreaseRisk}</h4>
           <ul>
             {(prediction.top_risk_decreasing ?? []).map((r, i) => (
               <li key={`dec-${i}`}>
                 <span>
-                  <span className={styles.reasonFeature}>{getFeatureLabel(r.feature)}</span>
-                  <span className={styles.reasonMeaning}>{getFeatureMeaning(r.feature)}</span>
+                  <span className={styles.reasonFeature}>{getFeatureLabel(r.feature, language)}</span>
+                  <span className={styles.reasonMeaning}>{getFeatureMeaning(r.feature, language)}</span>
                 </span>
                 <span style={{color: COLORS.lowRisk, fontWeight: 700}}>{r.impact.toFixed(4)}</span>
               </li>
@@ -254,7 +298,7 @@ export default function XAIVisualization({ prediction, loading = false }) {
       </div>
 
       <div className={styles.termGlossary}>
-        <h4>What These Terms Mean</h4>
+        <h4>{t.termsTitle}</h4>
         <ul>
           {featureGlossary.map((term) => (
             <li key={term.key}>

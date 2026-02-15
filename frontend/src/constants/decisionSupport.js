@@ -1,4 +1,4 @@
-const FEATURE_LABELS = {
+const FEATURE_LABELS_EN = {
   checking_status: 'Money in Checking Account',
   savings_status: 'Money in Savings',
   duration: 'Repayment Time',
@@ -10,8 +10,21 @@ const FEATURE_LABELS = {
   purpose: 'Why You Need the Loan',
 };
 
-export function getFeatureLabel(feature) {
-  if (FEATURE_LABELS[feature]) return FEATURE_LABELS[feature];
+const FEATURE_LABELS_HI = {
+  checking_status: 'चेकिंग खाते में राशि',
+  savings_status: 'बचत में राशि',
+  duration: 'भुगतान समय',
+  num__duration: 'भुगतान समय',
+  credit_amount: 'लोन राशि',
+  num__credit_amount: 'लोन राशि',
+  installment_commitment: 'मासिक भुगतान भार',
+  num__installment_commitment: 'मासिक भुगतान भार',
+  purpose: 'लोन लेने का कारण',
+};
+
+export function getFeatureLabel(feature, language = 'en') {
+  const dictionary = language === 'hi' ? FEATURE_LABELS_HI : FEATURE_LABELS_EN;
+  if (dictionary[feature]) return dictionary[feature];
   const normalized = feature
     .replace('num__', '')
     .replaceAll('_', ' ')
@@ -19,10 +32,15 @@ export function getFeatureLabel(feature) {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-export function computeConfidence(prediction) {
+export function computeConfidence(prediction, language = 'en') {
+  const hi = language === 'hi';
   const pd = prediction?.probability_of_default;
   if (typeof pd !== 'number') {
-    return { band: 'Unknown', score: 0, rationale: 'Run an assessment to calculate confidence.' };
+    return {
+      band: 'Unknown',
+      score: 0,
+      rationale: hi ? 'विश्वसनीयता निकालने के लिए पहले आकलन चलाएँ।' : 'Run an assessment to calculate confidence.',
+    };
   }
 
   const normalizedMargin = Math.min(1, Math.abs(pd - 0.5) * 2);
@@ -40,21 +58,27 @@ export function computeConfidence(prediction) {
     return {
       band: 'High',
       score,
-      rationale: 'Prediction is far from the decision boundary and key factors are consistent.',
+      rationale: hi
+        ? 'भविष्यवाणी निर्णय सीमा से काफ़ी दूर है और प्रमुख कारक एक दिशा में हैं।'
+        : 'Prediction is far from the decision boundary and key factors are consistent.',
     };
   }
   if (score >= 0.48) {
     return {
       band: 'Medium',
       score,
-      rationale: 'Prediction is reasonably stable but can change with moderate input shifts.',
+      rationale: hi
+        ? 'भविष्यवाणी काफ़ी स्थिर है, लेकिन मध्यम बदलाव से बदल सकती है।'
+        : 'Prediction is reasonably stable but can change with moderate input shifts.',
     };
   }
 
   return {
     band: 'Low',
     score,
-    rationale: 'Prediction is near the boundary or spread across many competing factors.',
+    rationale: hi
+      ? 'भविष्यवाणी सीमा के पास है या कई प्रतिस्पर्धी कारकों में बंटी हुई है।'
+      : 'Prediction is near the boundary or spread across many competing factors.',
   };
 }
 
@@ -64,8 +88,10 @@ function addTip(tips, value) {
   }
 }
 
-export function generateRecommendations(formData, prediction) {
+export function generateRecommendations(formData, prediction, language = 'en') {
   if (!prediction) return [];
+
+  const hi = language === 'hi';
 
   const tips = [];
   const increasing = prediction?.top_risk_increasing ?? [];
@@ -73,36 +99,71 @@ export function generateRecommendations(formData, prediction) {
 
   if (higherRiskSet.has('credit_amount') || higherRiskSet.has('num__credit_amount')) {
     const reduced = Math.max(250, Math.round((Number(formData.credit_amount) || 0) * 0.9));
-    addTip(tips, `Reduce loan amount closer to ₹${reduced.toLocaleString('en-IN')} if possible.`);
+    addTip(
+      tips,
+      hi
+        ? `यदि संभव हो तो लोन राशि ₹${reduced.toLocaleString('en-IN')} के आसपास रखें।`
+        : `Reduce loan amount closer to ₹${reduced.toLocaleString('en-IN')} if possible.`,
+    );
   }
 
   if (higherRiskSet.has('duration') || higherRiskSet.has('num__duration')) {
     const shorter = Math.max(6, (Number(formData.duration) || 24) - 6);
-    addTip(tips, `Try a shorter repayment time around ${shorter} months if affordable.`);
+    addTip(
+      tips,
+      hi
+        ? `यदि संभव हो तो भुगतान समय लगभग ${shorter} महीने रखें।`
+        : `Try a shorter repayment time around ${shorter} months if affordable.`,
+    );
   }
 
   if (higherRiskSet.has('installment_commitment') || higherRiskSet.has('num__installment_commitment')) {
-    addTip(tips, 'Lower monthly payment burden by adjusting loan amount or tenure balance.');
+    addTip(
+      tips,
+      hi
+        ? 'लोन राशि या अवधि समायोजित करके मासिक भुगतान भार कम करें।'
+        : 'Lower monthly payment burden by adjusting loan amount or tenure balance.',
+    );
   }
 
   if (higherRiskSet.has('savings_status')) {
-    addTip(tips, 'Move to a higher savings bucket before applying to improve trust profile.');
+    addTip(
+      tips,
+      hi
+        ? 'आवेदन से पहले बचत श्रेणी बेहतर करें ताकि प्रोफ़ाइल मजबूत लगे।'
+        : 'Move to a higher savings bucket before applying to improve trust profile.',
+    );
   }
 
   if (higherRiskSet.has('checking_status')) {
-    addTip(tips, 'Maintain a healthier checking account balance for a few months before application.');
+    addTip(
+      tips,
+      hi
+        ? 'आवेदन से पहले कुछ महीनों तक चेकिंग खाते में बेहतर बैलेंस रखें।'
+        : 'Maintain a healthier checking account balance for a few months before application.',
+    );
   }
 
   if (higherRiskSet.has('purpose')) {
-    addTip(tips, 'If feasible, choose an essential/low-risk loan purpose category.');
+    addTip(
+      tips,
+      hi
+        ? 'यदि संभव हो तो कम-जोखिम/आवश्यक उपयोग वाला लोन उद्देश्य चुनें।'
+        : 'If feasible, choose an essential/low-risk loan purpose category.',
+    );
   }
 
-  addTip(tips, 'Use the What-If Simulator and save scenarios before final submission.');
+  addTip(
+    tips,
+    hi
+      ? 'अंतिम सबमिशन से पहले What-If सिम्युलेटर का उपयोग करें और परिदृश्य सहेजें।'
+      : 'Use the What-If Simulator and save scenarios before final submission.',
+  );
 
   return tips.slice(0, 5);
 }
 
-export function summarizeTopFactors(prediction, count = 2) {
+export function summarizeTopFactors(prediction, count = 2, language = 'en') {
   const factors = prediction?.top_risk_increasing ?? [];
-  return factors.slice(0, count).map((item) => getFeatureLabel(item.feature)).join(', ') || 'N/A';
+  return factors.slice(0, count).map((item) => getFeatureLabel(item.feature, language)).join(', ') || 'N/A';
 }

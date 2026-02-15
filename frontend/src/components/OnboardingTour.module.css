@@ -1,0 +1,84 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.modal {
+  width: min(560px, 96vw);
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+  padding: 1.4rem;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.topRow h3 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.modal p {
+  margin: 0.9rem 0 1rem;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.progressRow {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.dotActive {
+  background: #2563eb;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.ghostBtn,
+.primaryBtn {
+  border-radius: 9px;
+  padding: 0.5rem 0.9rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.ghostBtn {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.primaryBtn {
+  background: #f97316;
+  color: #fff;
+}
+
+.ghostBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -4,17 +4,23 @@ import { FORM_SELECT_OPTIONS } from '../constants/formOptions';
 const STEP_GROUPS = [
   {
     title: 'Applicant',
+    titleHi: 'आवेदक',
     shortTitle: 'Profile',
+    shortTitleHi: 'प्रोफ़ाइल',
     fields: ['age', 'personal_status', 'job', 'employment', 'num_dependents', 'housing'],
   },
   {
     title: 'History',
+    titleHi: 'इतिहास',
     shortTitle: 'Credit',
+    shortTitleHi: 'क्रेडिट',
     fields: ['checking_status', 'credit_history', 'existing_credits', 'other_payment_plans', 'own_telephone', 'foreign_worker'],
   },
   {
     title: 'Financials',
+    titleHi: 'वित्तीय जानकारी',
     shortTitle: 'Loan',
+    shortTitleHi: 'लोन',
     fields: ['purpose', 'credit_amount', 'duration', 'installment_commitment', 'savings_status', 'residence_since', 'other_parties', 'property_magnitude'],
   },
 ];
@@ -42,6 +48,29 @@ const FIELD_LABELS = {
   foreign_worker: 'Foreign Worker Status',
 };
 
+const FIELD_LABELS_HI = {
+  checking_status: 'चेकिंग खाते में राशि',
+  duration: 'भुगतान समय (महीने)',
+  credit_history: 'पिछला भुगतान रिकॉर्ड',
+  purpose: 'लोन लेने का कारण',
+  credit_amount: 'लोन राशि',
+  savings_status: 'बचत में राशि',
+  employment: 'वर्तमान रोजगार अवधि',
+  installment_commitment: 'मासिक भुगतान भार',
+  personal_status: 'पारिवारिक / व्यक्तिगत स्थिति',
+  other_parties: 'अन्य व्यक्ति का समर्थन',
+  residence_since: 'वर्तमान घर में अवधि',
+  property_magnitude: 'मुख्य संपत्ति',
+  age: 'आयु',
+  other_payment_plans: 'अन्य भुगतान योजनाएँ',
+  housing: 'रहने की स्थिति',
+  existing_credits: 'वर्तमान सक्रिय लोन',
+  job: 'कार्य प्रकार',
+  num_dependents: 'आय पर निर्भर लोग',
+  own_telephone: 'पंजीकृत टेलीफ़ोन',
+  foreign_worker: 'विदेशी कार्यकर्ता स्थिति',
+};
+
 const FIELD_MEANINGS = {
   checking_status: 'The balance range in your checking account.',
   duration: 'How many months you plan to take to repay this loan.',
@@ -65,7 +94,173 @@ const FIELD_MEANINGS = {
   foreign_worker: 'Whether you are recorded as a foreign worker in this dataset.',
 };
 
-const OPTION_MEANINGS = {
+const OPTION_DISPLAY_LABELS_EN = {
+  checking_status: {
+    '<0': 'Below 0',
+    '0<=X<200': '0 to 199',
+    '>=200': '200 or more',
+    'no checking': 'No checking account',
+  },
+  credit_history: {
+    'no credits/all paid': 'No credits / all paid',
+    'all paid': 'All paid',
+    'existing paid': 'Existing paid',
+    'delayed previously': 'Previously delayed',
+    'critical/other existing credit': 'Critical / other credit',
+  },
+  purpose: {
+    'new car': 'New car',
+    'used car': 'Used car',
+    'furniture/equipment': 'Furniture / equipment',
+    'radio/tv': 'Electronics',
+    'domestic appliance': 'Home appliance',
+    repairs: 'Repairs',
+    education: 'Education',
+    business: 'Business',
+    other: 'Other',
+  },
+  savings_status: {
+    '<100': 'Below 100',
+    '100<=X<500': '100 to 499',
+    '500<=X<1000': '500 to 999',
+    '>=1000': '1000 or more',
+    'no known savings': 'No known savings',
+  },
+  employment: {
+    unemployed: 'Unemployed',
+    '<1': 'Less than 1 year',
+    '1<=X<4': '1 to 3 years',
+    '4<=X<7': '4 to 6 years',
+    '>=7': '7+ years',
+  },
+  personal_status: {
+    'male div/sep': 'Male divorced/separated',
+    'female div/dep/mar': 'Female divorced/dependent/married',
+    'male single': 'Male single',
+    'male mar/wid': 'Male married/widowed',
+    'female single': 'Female single',
+  },
+  other_parties: {
+    none: 'None',
+    'co applicant': 'Co-applicant',
+    guarantor: 'Guarantor',
+  },
+  property_magnitude: {
+    'real estate': 'Real estate',
+    'life insurance': 'Life insurance',
+    car: 'Car',
+    'no known property': 'No known property',
+  },
+  other_payment_plans: {
+    bank: 'Bank',
+    stores: 'Stores',
+    none: 'None',
+  },
+  housing: {
+    rent: 'Rent',
+    own: 'Own',
+    'for free': 'For free',
+  },
+  job: {
+    'unskilled non resident': 'Unskilled (non-resident)',
+    'unskilled resident': 'Unskilled (resident)',
+    skilled: 'Skilled',
+    'high qualif/self emp/mgmt': 'Highly qualified / self-employed / management',
+  },
+  own_telephone: {
+    none: 'No',
+    yes: 'Yes',
+  },
+  foreign_worker: {
+    yes: 'Yes',
+    no: 'No',
+  },
+};
+
+const OPTION_DISPLAY_LABELS_HI = {
+  checking_status: {
+    '<0': '0 से कम',
+    '0<=X<200': '0 से 199',
+    '>=200': '200 या अधिक',
+    'no checking': 'चेकिंग खाता नहीं',
+  },
+  credit_history: {
+    'no credits/all paid': 'कोई क्रेडिट नहीं / सब भुगतान',
+    'all paid': 'सब भुगतान',
+    'existing paid': 'मौजूदा भुगतान नियमित',
+    'delayed previously': 'पहले देरी हुई',
+    'critical/other existing credit': 'गंभीर / अन्य क्रेडिट',
+  },
+  purpose: {
+    'new car': 'नई कार',
+    'used car': 'पुरानी कार',
+    'furniture/equipment': 'फर्नीचर / उपकरण',
+    'radio/tv': 'इलेक्ट्रॉनिक्स',
+    'domestic appliance': 'घरेलू उपकरण',
+    repairs: 'मरम्मत',
+    education: 'शिक्षा',
+    business: 'व्यवसाय',
+    other: 'अन्य',
+  },
+  savings_status: {
+    '<100': '100 से कम',
+    '100<=X<500': '100 से 499',
+    '500<=X<1000': '500 से 999',
+    '>=1000': '1000 या अधिक',
+    'no known savings': 'बचत जानकारी उपलब्ध नहीं',
+  },
+  employment: {
+    unemployed: 'बेरोजगार',
+    '<1': '1 वर्ष से कम',
+    '1<=X<4': '1 से 3 वर्ष',
+    '4<=X<7': '4 से 6 वर्ष',
+    '>=7': '7+ वर्ष',
+  },
+  personal_status: {
+    'male div/sep': 'पुरुष तलाकशुदा/अलग',
+    'female div/dep/mar': 'महिला तलाकशुदा/निर्भर/विवाहित',
+    'male single': 'पुरुष अविवाहित',
+    'male mar/wid': 'पुरुष विवाहित/विधुर',
+    'female single': 'महिला अविवाहित',
+  },
+  other_parties: {
+    none: 'कोई नहीं',
+    'co applicant': 'सह-आवेदक',
+    guarantor: 'जमानतदार',
+  },
+  property_magnitude: {
+    'real estate': 'अचल संपत्ति',
+    'life insurance': 'जीवन बीमा',
+    car: 'कार',
+    'no known property': 'कोई ज्ञात संपत्ति नहीं',
+  },
+  other_payment_plans: {
+    bank: 'बैंक',
+    stores: 'स्टोर',
+    none: 'कोई नहीं',
+  },
+  housing: {
+    rent: 'किराए पर',
+    own: 'स्वयं का',
+    'for free': 'मुफ़्त',
+  },
+  job: {
+    'unskilled non resident': 'अकुशल (गैर-निवासी)',
+    'unskilled resident': 'अकुशल (निवासी)',
+    skilled: 'कुशल',
+    'high qualif/self emp/mgmt': 'उच्च योग्य / स्व-रोज़गार / प्रबंधन',
+  },
+  own_telephone: {
+    none: 'नहीं',
+    yes: 'हाँ',
+  },
+  foreign_worker: {
+    yes: 'हाँ',
+    no: 'नहीं',
+  },
+};
+
+const OPTION_MEANINGS_EN = {
   checking_status: {
     '<0': 'Balance is below 0.',
     '0<=X<200': 'Balance is between 0 and 200.',
@@ -106,6 +301,47 @@ const OPTION_MEANINGS = {
   },
 };
 
+const OPTION_MEANINGS_HI = {
+  checking_status: {
+    '<0': 'बैलेंस 0 से कम है।',
+    '0<=X<200': 'बैलेंस 0 से 200 के बीच है।',
+    '>=200': 'बैलेंस 200 या अधिक है।',
+    'no checking': 'चेकिंग खाते की जानकारी उपलब्ध नहीं है।',
+  },
+  savings_status: {
+    '<100': 'बचत 100 से कम है।',
+    '100<=X<500': 'बचत 100 से 500 के बीच है।',
+    '500<=X<1000': 'बचत 500 से 1000 के बीच है।',
+    '>=1000': 'बचत 1000 या अधिक है।',
+    'no known savings': 'बचत की जानकारी उपलब्ध नहीं है।',
+  },
+  employment: {
+    unemployed: 'वर्तमान में रोजगार नहीं है।',
+    '<1': 'रोजगार अवधि 1 वर्ष से कम है।',
+    '1<=X<4': 'रोजगार अवधि 1 से 4 वर्ष के बीच है।',
+    '4<=X<7': 'रोजगार अवधि 4 से 7 वर्ष के बीच है।',
+    '>=7': 'रोजगार अवधि 7 वर्ष या अधिक है।',
+  },
+  other_parties: {
+    none: 'कोई सह-आवेदक या जमानतदार नहीं है।',
+    'co applicant': 'एक सह-आवेदक शामिल है।',
+    guarantor: 'एक जमानतदार समर्थन कर रहा है।',
+  },
+  housing: {
+    rent: 'आप किराए के घर में रहते हैं।',
+    own: 'आप अपने घर में रहते हैं।',
+    'for free': 'आप बिना किराए के रहते हैं।',
+  },
+  own_telephone: {
+    none: 'पंजीकृत टेलीफ़ोन नहीं है।',
+    yes: 'पंजीकृत टेलीफ़ोन उपलब्ध है।',
+  },
+  foreign_worker: {
+    yes: 'डेटासेट में विदेशी कार्यकर्ता के रूप में दर्ज है।',
+    no: 'डेटासेट में विदेशी कार्यकर्ता के रूप में दर्ज नहीं है।',
+  },
+};
+
 const NUMERIC_FIELDS = new Set([
   'duration',
   'credit_amount',
@@ -116,7 +352,25 @@ const NUMERIC_FIELDS = new Set([
   'num_dependents',
 ]);
 
-export default function AssessmentForm({ formData, updateField, currentStep, setCurrentStep, onAssess, loading }) {
+export default function AssessmentForm({
+  formData,
+  updateField,
+  currentStep,
+  setCurrentStep,
+  onAssess,
+  loading,
+  language = 'en',
+  t = {
+    formTitle: 'Risk Assessment',
+    formSubtitle: 'Complete the profile to generate an AI-powered risk score.',
+    validationsTitle: 'Smart Guidance',
+    back: 'Back',
+    nextStep: 'Next Step',
+    analyzing: 'Analyzing...',
+    assessRisk: 'Assess Risk',
+  },
+  validationHints = [],
+}) {
   const currentGroup = STEP_GROUPS[currentStep];
   const isLastStep = currentStep === STEP_GROUPS.length - 1;
 
@@ -130,9 +384,12 @@ export default function AssessmentForm({ formData, updateField, currentStep, set
 
   const renderField = (field) => {
     const options = FORM_SELECT_OPTIONS[field];
-    const label = FIELD_LABELS[field] || field;
+    const labelMap = language === 'hi' ? FIELD_LABELS_HI : FIELD_LABELS;
+    const optionDisplayMap = language === 'hi' ? OPTION_DISPLAY_LABELS_HI : OPTION_DISPLAY_LABELS_EN;
+    const optionMeaningMap = language === 'hi' ? OPTION_MEANINGS_HI : OPTION_MEANINGS_EN;
+    const label = labelMap[field] || field;
     const fieldMeaning = FIELD_MEANINGS[field];
-    const selectedOptionMeaning = options ? OPTION_MEANINGS[field]?.[formData[field]] : null;
+    const selectedOptionMeaning = options ? optionMeaningMap[field]?.[formData[field]] : null;
 
     return (
       <div key={field} className={styles.fieldGroup}>
@@ -147,7 +404,7 @@ export default function AssessmentForm({ formData, updateField, currentStep, set
             >
               {options.map((opt) => (
                 <option key={opt} value={opt}>
-                  {opt}
+                  {optionDisplayMap[field]?.[opt] ?? opt}
                 </option>
               ))}
             </select>
@@ -168,8 +425,8 @@ export default function AssessmentForm({ formData, updateField, currentStep, set
   return (
     <section className={styles.card}>
       <div className={styles.header}>
-        <h2>Risk Assessment</h2>
-        <p>Complete the profile to generate an AI-powered risk score.</p>
+        <h2>{t.formTitle}</h2>
+        <p>{t.formSubtitle}</p>
       </div>
 
       <div className={styles.progressContainer}>
@@ -181,7 +438,7 @@ export default function AssessmentForm({ formData, updateField, currentStep, set
            return (
              <div key={idx} className={nodeClass}>
                 <span>{idx + 1}</span>
-                <span className={styles.stepLabel}>{grp.shortTitle}</span>
+               <span className={styles.stepLabel}>{language === 'hi' ? grp.shortTitleHi : grp.shortTitle}</span>
              </div>
            );
         })}
@@ -191,20 +448,31 @@ export default function AssessmentForm({ formData, updateField, currentStep, set
         {currentGroup.fields.map(renderField)}
       </div>
 
+      {validationHints.length > 0 ? (
+        <div className={styles.validationBox}>
+          <h3>{t.validationsTitle}</h3>
+          <ul>
+            {validationHints.map((hint) => (
+              <li key={hint}>{hint}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <div className={styles.actions}>
         {currentStep > 0 && (
           <button className={styles.button} onClick={() => setCurrentStep((p) => p - 1)} disabled={loading}>
-            Back
+            {t.back}
           </button>
         )}
         
         {!isLastStep ? (
           <button className={styles.submitButton} onClick={() => setCurrentStep((p) => p + 1)} disabled={loading}>
-            Next Step
+            {t.nextStep}
           </button>
         ) : (
           <button className={styles.submitButton} onClick={onAssess} disabled={loading}>
-            {loading ? 'Analyzing...' : 'Assess Risk'}
+            {loading ? t.analyzing : t.assessRisk}
           </button>
         )}
       </div>

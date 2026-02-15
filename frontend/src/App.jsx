@@ -3,10 +3,13 @@ import { jsPDF } from 'jspdf';
 import { checkHealth, predictRisk } from './api/client';
 import AssessmentForm from './components/AssessmentForm';
 import DecisionSupportPanel from './components/DecisionSupportPanel';
+import OnboardingTour from './components/OnboardingTour';
 import WhatIfSimulator from './components/WhatIfSimulator';
 import XAIVisualization from './components/XAIVisualization';
 import { computeConfidence, generateRecommendations, getFeatureLabel } from './constants/decisionSupport';
 import { DEFAULT_FORM_VALUES } from './constants/formOptions';
+import { TEXT } from './constants/i18n';
+import { getValidationHints } from './constants/validation';
 import styles from './App.module.css';
 
 function readSessionState(key, fallback) {
@@ -37,6 +40,9 @@ function App() {
   const [savedScenarios, setSavedScenarios] = useState(() => readSessionState('credishield-scenarios', []));
   const [history, setHistory] = useState(() => readSessionState('credishield-history', []));
   const [baselineScenario, setBaselineScenario] = useState(() => readSessionState('credishield-baseline', null));
+  const [language, setLanguage] = useState(() => readSessionState('credishield-language', 'en'));
+  const [tourOpen, setTourOpen] = useState(() => readSessionState('credishield-tour-open', true));
+  const t = TEXT[language] ?? TEXT.en;
 
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -51,7 +57,7 @@ function App() {
       return result;
     } catch (err) {
       console.error('runPrediction failed in App', err);
-      setError('Could not reach risk engine. Please check backend health and retry.');
+      setError(t.apiOffline);
       return null;
     } finally {
       setLoading(false);
@@ -74,7 +80,7 @@ function App() {
         setBaselineScenario(baseline);
       }
 
-      const confidence = computeConfidence(result);
+      const confidence = computeConfidence(result, language);
       setHistory((prev) => [
         {
           id: `hist-${Date.now()}`,
@@ -90,9 +96,9 @@ function App() {
   const refreshHealth = async () => {
     try {
       const res = await checkHealth();
-      setApiHealth({ status: 'up', message: `${res.service} is online` });
+      setApiHealth({ status: 'up', message: `${res.service} ${t.apiOnline}` });
     } catch (e) {
-      setApiHealth({ status: 'down', message: 'Backend is unavailable. Please start API server.' });
+      setApiHealth({ status: 'down', message: t.apiOffline });
     }
   };
 
@@ -112,8 +118,8 @@ function App() {
   const handleExportPdf = () => {
     if (!prediction) return;
 
-    const confidence = computeConfidence(prediction);
-    const recommendations = generateRecommendations(formData, prediction);
+    const confidence = computeConfidence(prediction, language);
+    const recommendations = generateRecommendations(formData, prediction, language);
     const doc = new jsPDF();
     let y = 14;
 
@@ -127,24 +133,24 @@ function App() {
     doc.setFontSize(11);
     writeLine(`Generated: ${new Date().toLocaleString()}`);
     writeLine(`Risk Score (PD): ${(prediction.probability_of_default * 100).toFixed(1)}%`);
-    writeLine(`Confidence: ${confidence.band} (${confidenceText(confidence.score)})`);
+    writeLine(`${t.confidence}: ${confidence.band} (${confidenceText(confidence.score)})`);
     y += 2;
 
     writeLine('Input Summary:');
     Object.entries(formData).forEach(([key, value]) => {
-      writeLine(`- ${getFeatureLabel(key)}: ${value}`, 6);
+      writeLine(`- ${getFeatureLabel(key, language)}: ${value}`, 6);
     });
 
     y += 2;
     writeLine('Top SHAP Risk-Increasing Factors:');
     (prediction.top_risk_increasing ?? []).slice(0, 3).forEach((item) => {
-      writeLine(`- ${getFeatureLabel(item.feature)} (+${item.impact.toFixed(4)})`, 6);
+      writeLine(`- ${getFeatureLabel(item.feature, language)} (+${item.impact.toFixed(4)})`, 6);
     });
 
     y += 2;
     writeLine('Top SHAP Risk-Decreasing Factors:');
     (prediction.top_risk_decreasing ?? []).slice(0, 3).forEach((item) => {
-      writeLine(`- ${getFeatureLabel(item.feature)} (${item.impact.toFixed(4)})`, 6);
+      writeLine(`- ${getFeatureLabel(item.feature, language)} (${item.impact.toFixed(4)})`, 6);
     });
 
     y += 2;
@@ -154,8 +160,9 @@ function App() {
     doc.save(`CrediShield_Report_${Date.now()}.pdf`);
   };
 
-  const confidence = computeConfidence(prediction);
-  const recommendations = generateRecommendations(formData, prediction);
+  const confidence = computeConfidence(prediction, language);
+  const recommendations = generateRecommendations(formData, prediction, language);
+  const validationHints = getValidationHints(formData, language);
 
   useEffect(() => {
     saveSessionState('credishield-scenarios', savedScenarios);
@@ -170,10 +177,18 @@ function App() {
   }, [baselineScenario]);
 
   useEffect(() => {
+    saveSessionState('credishield-language', language);
+  }, [language]);
+
+  useEffect(() => {
+    saveSessionState('credishield-tour-open', tourOpen);
+  }, [tourOpen]);
+
+  useEffect(() => {
     refreshHealth();
     const interval = setInterval(refreshHealth, 15000);
     return () => clearInterval(interval);
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     if (!simulationEnabled) {
@@ -193,10 +208,24 @@ function App() {
         <div className={styles.titleRow}>
           <div>
             <h1>CrediShield XAI</h1>
-            <p>Neumorphic Cyber-Finance Intelligence Unit</p>
+            <p>{t.appTagline}</p>
           </div>
-          <div className={`${styles.healthBadge} ${styles[`health_${apiHealth.status}`]}`}>
-            {apiHealth.message}
+          <div className={styles.topControls}>
+            <div className={styles.langSwitch}>
+              <span>{t.language}</span>
+              <button type="button" className={language === 'en' ? styles.langActive : ''} onClick={() => setLanguage('en')}>
+                {t.english}
+              </button>
+              <button type="button" className={language === 'hi' ? styles.langActive : ''} onClick={() => setLanguage('hi')}>
+                {t.hindi}
+              </button>
+            </div>
+            <button className={styles.tourBtn} type="button" onClick={() => setTourOpen(true)}>
+              {t.startTour}
+            </button>
+            <div className={`${styles.healthBadge} ${styles[`health_${apiHealth.status}`]}`}>
+              {apiHealth.message || t.checkingHealth}
+            </div>
           </div>
         </div>
       </header>
@@ -205,7 +234,7 @@ function App() {
         <div className={styles.errorToast}>
            <span>{error}</span>
            <button className={styles.retryButton} onClick={() => runPrediction(formData)} type="button">
-             Retry
+             {t.retry}
            </button>
         </div>
       )}
@@ -219,6 +248,9 @@ function App() {
             setCurrentStep={setCurrentStep}
             onAssess={handleAssessRisk}
             loading={loading}
+            language={language}
+            t={t}
+            validationHints={validationHints}
           />
 
           {simulationEnabled && (
@@ -227,6 +259,8 @@ function App() {
               onScenarioChange={updateField}
               isEnabled={simulationEnabled}
               loading={loading}
+              t={t}
+              language={language}
             />
           )}
 
@@ -239,13 +273,17 @@ function App() {
             history={history}
             onSaveScenario={handleSaveScenario}
             onExportPdf={handleExportPdf}
+            t={t}
+            language={language}
           />
         </div>
 
         <div className={styles.vizColumn}>
-           <XAIVisualization prediction={prediction} loading={loading} />
+           <XAIVisualization prediction={prediction} loading={loading} t={t} language={language} />
         </div>
       </div>
+
+      {tourOpen ? <OnboardingTour t={t} onClose={() => setTourOpen(false)} /> : null}
     </div>
   );
 }
